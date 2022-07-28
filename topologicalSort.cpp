@@ -1,53 +1,75 @@
-// Topological sort in a graph using DFS
+// Bellman Ford algorithm for shortest path
+// also checking for negative cycle
 
 #include <bits/stdc++.h>
 using namespace std;
 
 class Graph{
 	public:
-		unordered_map<int, vector<int>> adj;
-		void addEdges(int u, int v){
-			adj[u].push_back(v);
+		vector<vector<int>> edges;
+		void addEdges(int u, int v, int w){
+			vector<int> t;
+			t.push_back(u);
+			t.push_back(v);
+			t.push_back(w);
+			edges.push_back(t);
 		}
-		void topoSort(int node, unordered_map<int,bool> &visited, stack<int> &s){
-			visited[node] = 1;
-			for(auto neighbour: adj[node]){
-				if(!visited[neighbour]){
-					topoSort(neighbour, visited, s);
+		
+		void bellmanFord(int n, int src){
+			unordered_map<int,int> dist;
+			for(auto i: edges){
+				dist[i[0]] = INT_MAX;
+			}
+			dist[src] = 0;
+			for(int i=0; i<(n-1); i++){
+				for(auto j : edges){
+					int u = j[0];
+					int v = j[1];
+					int w = j[2];
+					if(dist[u]<INT_MAX && (dist[u]+w < dist[v])){
+						dist[v] = dist[u]+w;
+					}
 				}
 			}
-			s.push(node);
-		}
-		void topologicalSort(int v){
-			unordered_map<int,bool> visited;
-			stack<int> s;
-			for(auto i : adj){
-				int node = i.first;
-				if(!visited[node]){
-					topoSort(node, visited, s);
+			// check for negative cycle
+			int flag=0;
+			for(auto j : edges){
+				int u = j[0];
+				int v = j[1];
+				int w = j[2];
+				if(dist[u]<INT_MAX && (dist[u]+w < dist[v])){
+					// dist[v] = dist[u]+w;
+					flag=1;
 				}
 			}
-			vector<int> ans;
-			while(!s.empty()){
-				ans.push_back(s.top());
-				s.pop();
+			if(flag == 0){
+				cout<<"Shortest distance is "<<endl;
+				for(auto i : dist){
+					cout<<i.first<<"->"<<i.second<<" ";
+				}
 			}
-			for(int i=0; i<ans.size(); i++) cout<<ans[i]<<" ";
+			else{
+				cout<<"negative cycle exists";
+			}
 		}
+		
+		
 };
 
 int main(int argc, char** argv) {
 	Graph g;
-	int n,m,u,v;
+	int n,m,u,v,w,src;
 	cout<<"enter number of nodes ";
 	cin>>n;
 	cout<<"enter number of edges ";
 	cin>>m;
 	cout<<"enter edges"<<endl;
 	for(int i=0; i<m; i++){
-		cin>>u>>v;
-		g.addEdges(u,v);
+		cin>>u>>v>>w;
+		g.addEdges(u,v,w);
 	}
-	g.topologicalSort(n);
+	cout<<"enter source node ";
+	cin>>src;
+	g.bellmanFord(n,src);
 	return 0;
 }
